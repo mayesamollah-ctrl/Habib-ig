@@ -91,7 +91,7 @@ module.exports = {
         totalUnique++;
       }
 
-      let msg = `━━━☠️ ${config.NICK_NAME_BOT || 'NeoKEX AI'} ☠️━━━\n`;
+      let msg = `━━━☠️ ${config.NICK_NAME_BOT || '♡┋Habibᥫ᭡'} ☠️━━━\n`;
       msg += `│ Prefix: ${prefix}  │  Commands: ${totalUnique}\n`;
 
       const sortedCats = Object.keys(categories).sort();
