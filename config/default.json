@@ -12,8 +12,8 @@
   "antiInbox": false,
   "language": "en",
   "notesLanguage": "change to your language with ISO 639-1 code, available languages: vi (Vietnamese), en (English)",
-  "nickNameBot": "গেসুকে 😈",
-  "prefix": "~",
+  "nickNameBot": "♡┋Habibᥫ᭡",
+  "prefix": ".",
   "noPrefix": true,
   "noPrefixNotes": "When true, Bot Admins (role 2) and Developers (role 4) can run commands without the prefix",
   "adminOnly": {
@@ -21,20 +21,20 @@
     "ignoreCommand": []
   },
   "adminBot": [
-    "52943709733"
+    "80054943614"
   ],
   "premiumUsers": [
-    "52943709733"
+    "80054943614"
   ],
   "devUsers": [
-    "52943709733"
+    "80054943614"
   ],
   "notes_premiumUsers": "List of user IDs with premium access (role 3)",
   "notes_devUsers": "List of developer IDs with full access (role 4)",
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [
-      "52943709733"
+      "80054943614"
     ],
     "notes": "if you enable this feature, only the ids in the whiteListIds list can use the bot"
   },
@@ -54,7 +54,7 @@
     "notes": "(1) type selects 'sqlite' or 'mongodb'. To use MongoDB, paste your connection URI into uriMongodb. (2) autoSave periodically flushes in-memory state to disk/MongoDB every saveIntervalMinutes minutes. (3) autoSyncWhenStart re-syncs data on startup. (4) autoRefreshThreadInfoFirstTime refreshes thread info on first message."
   },
   "messageDelayMs": 100,
-  "timeZone": "Asia/Dhaka",
+  "timeZone": "Asia/kolkata",
   "dashBoard": {
     "enable": true,
     "expireVerifyCode": 300000,
