@@ -1,5 +1,5 @@
-const logger = require('./logger');
-const config = require('../config');
+const logger = require("./logger");
+const config = require("../config");
 
 class MessageQueue {
   constructor() {
@@ -15,9 +15,14 @@ class MessageQueue {
    * @param {Object} context - Message context
    */
   add(sendFunction, context = {}) {
-    this.queue.push({ sendFunction, context, timestamp: Date.now(), retries: 0 });
-    logger.debug('Message added to queue', { queueLength: this.queue.length });
-    
+    this.queue.push({
+      sendFunction,
+      context,
+      timestamp: Date.now(),
+      retries: 0,
+    });
+    logger.debug("Message added to queue", { queueLength: this.queue.length });
+
     if (!this.processing) {
       this.process();
     }
@@ -43,24 +48,28 @@ class MessageQueue {
     while (this.queue.length > 0) {
       const item = this.queue.shift();
       const { sendFunction, context, retries } = item;
-      
+
       // Rate limiting with human-like random delay
       const now = Date.now();
       const timeSinceLastMessage = now - this.lastMessageTime;
       const baseDelay = config.MESSAGE_DELAY_MS;
       const randomDelay = this.getRandomDelay();
       const totalDelay = baseDelay + randomDelay;
-      
+
       if (timeSinceLastMessage < totalDelay) {
         const delay = totalDelay - timeSinceLastMessage;
-        logger.debug(`Rate limiting: waiting ${delay}ms (base: ${baseDelay}ms, random: ${randomDelay}ms)`);
+        logger.debug(
+          `Rate limiting: waiting ${delay}ms (base: ${baseDelay}ms, random: ${randomDelay}ms)`,
+        );
         await this.sleep(delay);
       }
 
       // Add extra delay if we've had consecutive errors (backoff)
       if (this.consecutiveErrors > 0) {
         const backoffDelay = Math.min(this.consecutiveErrors * 1000, 5000);
-        logger.warn(`Backing off due to errors: waiting additional ${backoffDelay}ms`);
+        logger.warn(
+          `Backing off due to errors: waiting additional ${backoffDelay}ms`,
+        );
         await this.sleep(backoffDelay);
       }
 
@@ -68,16 +77,16 @@ class MessageQueue {
         await sendFunction();
         this.lastMessageTime = Date.now();
         this.consecutiveErrors = 0;
-        logger.debug('Message sent successfully', context);
+        logger.debug("Message sent successfully", context);
       } catch (error) {
         this.consecutiveErrors++;
-        logger.error('Failed to send message', { 
-          error: error.message, 
+        logger.error("Failed to send message", {
+          error: error.message,
           context,
           retries,
-          consecutiveErrors: this.consecutiveErrors
+          consecutiveErrors: this.consecutiveErrors,
         });
-        
+
         // Retry logic for transient errors
         if (retries < 2 && this.shouldRetry(error)) {
           logger.info(`Retrying message (attempt ${retries + 1}/2)`);
@@ -96,12 +105,14 @@ class MessageQueue {
    * Determine if an error should trigger a retry
    */
   shouldRetry(error) {
-    const message = error.message || '';
+    const message = error.message || "";
     // Retry on network errors, timeouts, but not on auth or spam errors
-    return message.includes('timeout') || 
-           message.includes('ECONNRESET') ||
-           message.includes('ETIMEDOUT') ||
-           message.includes('network');
+    return (
+      message.includes("timeout") ||
+      message.includes("ECONNRESET") ||
+      message.includes("ETIMEDOUT") ||
+      message.includes("network")
+    );
   }
 
   /**
@@ -109,7 +120,7 @@ class MessageQueue {
    * @param {number} ms - Milliseconds to sleep
    */
   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -125,7 +136,7 @@ class MessageQueue {
    */
   clear() {
     this.queue = [];
-    logger.info('Message queue cleared');
+    logger.info("Message queue cleared");
   }
 }
 

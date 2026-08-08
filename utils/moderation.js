@@ -1,6 +1,6 @@
-const config = require('../config');
-const logger = require('./logger');
-const database = require('./database');
+const config = require("../config");
+const logger = require("./logger");
+const database = require("./database");
 
 // Per-user command spam tracking: userId -> { count, windowStart }
 const spamMap = new Map();
@@ -24,14 +24,16 @@ class ModerationManager {
    * If only one is enabled, that one must pass.
    */
   checkWhitelist(userId, threadId) {
-    const userEnabled   = config.WHITELIST_ENABLE;
+    const userEnabled = config.WHITELIST_ENABLE;
     const threadEnabled = config.WHITELIST_THREAD_ENABLE;
 
     if (!userEnabled && !threadEnabled) return true;
     if (userEnabled && threadEnabled) {
-      return this.checkUserWhitelist(userId) || this.checkThreadWhitelist(threadId);
+      return (
+        this.checkUserWhitelist(userId) || this.checkThreadWhitelist(threadId)
+      );
     }
-    if (userEnabled)   return this.checkUserWhitelist(userId);
+    if (userEnabled) return this.checkUserWhitelist(userId);
     if (threadEnabled) return this.checkThreadWhitelist(threadId);
     return true;
   }
@@ -43,10 +45,10 @@ class ModerationManager {
    * Returns { isSpam, shouldBan, message }
    */
   checkCommandSpam(userId) {
-    const uid       = String(userId);
-    const threshold = config.SPAM_COMMAND_THRESHOLD;  // number of commands
-    const window    = config.SPAM_TIME_WINDOW * 1000; // seconds → ms
-    const now       = Date.now();
+    const uid = String(userId);
+    const threshold = config.SPAM_COMMAND_THRESHOLD; // number of commands
+    const window = config.SPAM_TIME_WINDOW * 1000; // seconds → ms
+    const now = Date.now();
 
     let entry = spamMap.get(uid);
     if (!entry || now - entry.windowStart > window) {
@@ -62,7 +64,7 @@ class ModerationManager {
         shouldBan: true,
         message: config.HIDE_NOTI.userBanned
           ? null
-          : '🚫 You have been temporarily banned for spamming commands.'
+          : "🚫 You have been temporarily banned for spamming commands.",
       };
     }
 
@@ -83,10 +85,10 @@ class ModerationManager {
     if (database.isBanned(uid)) {
       return {
         allowed: false,
-        reason: 'userBanned',
+        reason: "userBanned",
         message: config.HIDE_NOTI.userBanned
           ? null
-          : '🚫 You have been banned from using this bot.'
+          : "🚫 You have been banned from using this bot.",
       };
     }
 
@@ -94,8 +96,9 @@ class ModerationManager {
     if (!this.checkWhitelist(uid, tid)) {
       return {
         allowed: false,
-        reason: 'whitelist',
-        message: '⚠️ This bot is in whitelist mode. You are not authorized to use it.'
+        reason: "whitelist",
+        message:
+          "⚠️ This bot is in whitelist mode. You are not authorized to use it.",
       };
     }
 
@@ -104,10 +107,10 @@ class ModerationManager {
 
   getStats() {
     return {
-      whitelistUserEnabled:   config.WHITELIST_ENABLE,
+      whitelistUserEnabled: config.WHITELIST_ENABLE,
       whitelistThreadEnabled: config.WHITELIST_THREAD_ENABLE,
-      spamThreshold:          config.SPAM_COMMAND_THRESHOLD,
-      spamTimeWindow:         config.SPAM_TIME_WINDOW
+      spamThreshold: config.SPAM_COMMAND_THRESHOLD,
+      spamTimeWindow: config.SPAM_TIME_WINDOW,
     };
   }
 }

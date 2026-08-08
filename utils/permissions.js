@@ -1,5 +1,5 @@
-const ConfigManager = require('./configManager');
-const logger = require('./logger');
+const ConfigManager = require("./configManager");
+const logger = require("./logger");
 
 /**
  * Role System
@@ -32,14 +32,18 @@ class PermissionManager {
 
     // Standard fca/nkxica adminIDs field
     if (Array.isArray(threadInfo.adminIDs)) {
-      return threadInfo.adminIDs.some(a =>
-        (typeof a === 'object' ? String(a.uid || a.id || '') : String(a)) === uid
+      return threadInfo.adminIDs.some(
+        (a) =>
+          (typeof a === "object" ? String(a.uid || a.id || "") : String(a)) ===
+          uid,
       );
     }
 
     // Alternative: adminParticipants array
     if (Array.isArray(threadInfo.adminParticipants)) {
-      return threadInfo.adminParticipants.some(a => String(a.userID || a.uid || a) === uid);
+      return threadInfo.adminParticipants.some(
+        (a) => String(a.userID || a.uid || a) === uid,
+      );
     }
 
     return false;
@@ -51,8 +55,8 @@ class PermissionManager {
    */
   static getGlobalRole(userId) {
     const uid = String(userId);
-    if (ConfigManager.getDevUsers().includes(uid))     return 4;
-    if (ConfigManager.getAdmins().includes(uid))       return 2;
+    if (ConfigManager.getDevUsers().includes(uid)) return 4;
+    if (ConfigManager.getAdmins().includes(uid)) return 2;
     if (ConfigManager.getPremiumUsers().includes(uid)) return 3;
     return 0;
   }
@@ -63,7 +67,7 @@ class PermissionManager {
    */
   static getUserRole(userId, threadInfo = null) {
     const globalRole = this.getGlobalRole(userId);
-    if (globalRole !== 0) return globalRole;           // already has a global role
+    if (globalRole !== 0) return globalRole; // already has a global role
     if (this.isGroupAdmin(userId, threadInfo)) return 1;
     return 0;
   }
@@ -85,7 +89,11 @@ class PermissionManager {
     switch (requiredRole) {
       case 1:
         // group admin, bot admin, or dev
-        return globalRole === 2 || globalRole === 3 || this.isGroupAdmin(userId, threadInfo);
+        return (
+          globalRole === 2 ||
+          globalRole === 3 ||
+          this.isGroupAdmin(userId, threadInfo)
+        );
 
       case 2:
         // bot admin or dev only
@@ -106,13 +114,15 @@ class PermissionManager {
 
   /** Human-readable role name */
   static getRoleName(role) {
-    return {
-      0: 'Normal User',
-      1: 'Group Administrator',
-      2: 'Bot Admin',
-      3: 'Premium User',
-      4: 'Bot Developer'
-    }[role] ?? 'Unknown';
+    return (
+      {
+        0: "Normal User",
+        1: "Group Administrator",
+        2: "Bot Admin",
+        3: "Premium User",
+        4: "Bot Developer",
+      }[role] ?? "Unknown"
+    );
   }
 
   /**

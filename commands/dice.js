@@ -1,13 +1,13 @@
 module.exports = {
   config: {
-    name: 'dice',
-    aliases: ['roll', 'd6', 'rolldice'],
-    description: 'Roll a dice (1-6) or custom sided dice',
-    usage: 'dice [sides]',
+    name: "dice",
+    aliases: ["roll", "d6", "rolldice"],
+    description: "Roll a dice (1-6) or custom sided dice",
+    usage: "dice [sides]",
     cooldown: 2,
     role: 0,
-    author: 'NeoKEX',
-    category: 'game'
+    author: "NeoKEX",
+    category: "game",
   },
 
   async run({ api, event, args, logger }) {
@@ -18,8 +18,8 @@ module.exports = {
         const parsedSides = parseInt(args[0]);
         if (isNaN(parsedSides) || parsedSides < 2 || parsedSides > 1000) {
           return api.sendMessage(
-            '❌ Invalid number of sides! Please use a number between 2 and 1000.',
-            event.threadId
+            "❌ Invalid number of sides! Please use a number between 2 and 1000.",
+            event.threadId,
           );
         }
         sides = parsedSides;
@@ -31,8 +31,11 @@ module.exports = {
 
       return api.sendMessage(message, event.threadId);
     } catch (error) {
-      logger.error('Error in dice command', { error: error.message, stack: error.stack });
-      return api.sendMessage('Error rolling dice.', event.threadId);
+      logger.error("Error in dice command", {
+        error: error.message,
+        stack: error.stack,
+      });
+      return api.sendMessage("Error rolling dice.", event.threadId);
     }
-  }
+  },
 };

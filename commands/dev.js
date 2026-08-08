@@ -1,13 +1,13 @@
 module.exports = {
   config: {
-    name: 'dev',
-    aliases: ['developer', 'owner'],
-    description: 'Developer panel - Bot developer only',
-    usage: 'dev',
+    name: "dev",
+    aliases: ["developer", "owner"],
+    description: "Developer panel - Bot developer only",
+    usage: "dev",
     cooldown: 0,
     role: 4,
-    author: 'NeoKEX',
-    category: 'system'
+    author: "NeoKEX",
+    category: "system",
   },
 
   async run({ api, event, bot, logger, config }) {
@@ -16,11 +16,11 @@ module.exports = {
       const hours = Math.floor(uptime / 3600);
       const minutes = Math.floor((uptime % 3600) / 60);
       const seconds = Math.floor(uptime % 60);
-      
+
       const memoryUsage = process.memoryUsage();
       const heapUsed = Math.round(memoryUsage.heapUsed / 1024 / 1024);
       const heapTotal = Math.round(memoryUsage.heapTotal / 1024 / 1024);
-      
+
       let devText = `Developer Panel\n\n`;
       devText += `🔧 System Information:\n`;
       devText += `  • Node.js: ${process.version}\n`;
@@ -41,11 +41,17 @@ module.exports = {
       devText += `  • Bot User ID: ${bot.userID}\n`;
       devText += `  • Bot Username: ${bot.username}\n\n`;
       devText += `⚡ Status: All Systems Operational`;
-      
+
       return api.sendMessage(devText, event.threadId);
     } catch (error) {
-      logger.error('Error in dev command', { error: error.message, stack: error.stack });
-      return api.sendMessage('Error displaying developer panel.', event.threadId);
+      logger.error("Error in dev command", {
+        error: error.message,
+        stack: error.stack,
+      });
+      return api.sendMessage(
+        "Error displaying developer panel.",
+        event.threadId,
+      );
     }
-  }
+  },
 };

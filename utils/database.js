@@ -1,9 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-const initSqlJs = require('sql.js');
-const { MongoClient } = require('mongodb');
-const logger = require('./logger');
-const config = require('../config');
+const fs = require("fs");
+const path = require("path");
+const initSqlJs = require("sql.js");
+const { MongoClient } = require("mongodb");
+const logger = require("./logger");
+const config = require("../config");
 
 class Database {
   constructor() {
@@ -12,7 +12,7 @@ class Database {
     this.sqlite = null;
     this.mongoClient = null;
     this.mongoCollection = null;
-    this.storeType = 'sqlite';
+    this.storeType = "sqlite";
     this.ready = this.init();
   }
 
@@ -29,7 +29,7 @@ class Database {
       spamWarnings: {},
       lastMessages: {},
       sentMessages: {},
-      processedMessages: {}
+      processedMessages: {},
     };
   }
 
@@ -46,7 +46,7 @@ class Database {
       spamWarnings: parsed.spamWarnings || {},
       lastMessages: parsed.lastMessages || {},
       sentMessages: parsed.sentMessages || {},
-      processedMessages: parsed.processedMessages || {}
+      processedMessages: parsed.processedMessages || {},
     };
   }
 
@@ -54,7 +54,7 @@ class Database {
     return {
       ...this.data,
       welcomedUsers: Array.from(this.data.welcomedUsers),
-      bannedUsers: Array.from(this.data.bannedUsers)
+      bannedUsers: Array.from(this.data.bannedUsers),
     };
   }
 
@@ -72,7 +72,10 @@ class Database {
         this.startAutoSave();
       }
     } catch (error) {
-      logger.error('Failed to initialize database', { error: error.message, stack: error.stack });
+      logger.error("Failed to initialize database", {
+        error: error.message,
+        stack: error.stack,
+      });
       this.data = this.createDefaultData();
     }
   }
@@ -80,14 +83,14 @@ class Database {
   ensureDataDirectory() {
     if (!fs.existsSync(config.DATA_PATH)) {
       fs.mkdirSync(config.DATA_PATH, { recursive: true });
-      logger.info('Created data directory');
+      logger.info("Created data directory");
     }
   }
 
   async initSQLite() {
-    this.storeType = 'sqlite';
+    this.storeType = "sqlite";
     const SQL = await initSqlJs({
-      locateFile: file => require.resolve(`sql.js/dist/${file}`)
+      locateFile: (file) => require.resolve(`sql.js/dist/${file}`),
     });
 
     if (fs.existsSync(this.dbPath)) {
@@ -97,12 +100,16 @@ class Database {
       this.sqlite = new SQL.Database();
     }
 
-    this.sqlite.run('CREATE TABLE IF NOT EXISTS bot_state (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL)');
-    const rows = this.sqlite.exec("SELECT value FROM bot_state WHERE key = 'data' LIMIT 1");
+    this.sqlite.run(
+      "CREATE TABLE IF NOT EXISTS bot_state (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at INTEGER NOT NULL)",
+    );
+    const rows = this.sqlite.exec(
+      "SELECT value FROM bot_state WHERE key = 'data' LIMIT 1",
+    );
 
     if (rows.length > 0 && rows[0].values.length > 0) {
       this.data = this.normalizeData(JSON.parse(rows[0].values[0][0]));
-      logger.info('SQLite database loaded successfully');
+      logger.info("SQLite database loaded successfully");
       return;
     }
 
@@ -111,25 +118,27 @@ class Database {
       this.data = this.normalizeData(legacyData);
       this.save();
       this.removeLegacyJsonData();
-      logger.info('Migrated JSON data to SQLite database');
+      logger.info("Migrated JSON data to SQLite database");
     } else {
       this.save();
-      logger.info('Created new SQLite database');
+      logger.info("Created new SQLite database");
     }
   }
 
   async initMongoDB() {
-    this.storeType = 'mongodb';
+    this.storeType = "mongodb";
     this.mongoClient = new MongoClient(config.MONGODB_URI);
     await this.mongoClient.connect();
 
     const databaseName = config.MONGODB_DATABASE;
-    this.mongoCollection = this.mongoClient.db(databaseName).collection('bot_state');
+    this.mongoCollection = this.mongoClient
+      .db(databaseName)
+      .collection("bot_state");
 
-    const state = await this.mongoCollection.findOne({ _id: 'data' });
+    const state = await this.mongoCollection.findOne({ _id: "data" });
     if (state?.data) {
       this.data = this.normalizeData(state.data);
-      logger.info('MongoDB database loaded successfully');
+      logger.info("MongoDB database loaded successfully");
       return;
     }
 
@@ -138,31 +147,35 @@ class Database {
       this.data = this.normalizeData(legacyData);
       await this.saveMongoDB();
       this.removeLegacyJsonData();
-      logger.info('Migrated JSON data to MongoDB database');
+      logger.info("Migrated JSON data to MongoDB database");
     } else {
       await this.saveMongoDB();
-      logger.info('Created new MongoDB database state');
+      logger.info("Created new MongoDB database state");
     }
   }
 
   loadLegacyJsonData() {
-    const legacyPath = path.resolve(config.DATA_PATH, 'database.json');
+    const legacyPath = path.resolve(config.DATA_PATH, "database.json");
     if (!fs.existsSync(legacyPath)) return null;
 
     try {
-      return JSON.parse(fs.readFileSync(legacyPath, 'utf-8'));
+      return JSON.parse(fs.readFileSync(legacyPath, "utf-8"));
     } catch (error) {
-      logger.error('Failed to read legacy JSON database', { error: error.message });
+      logger.error("Failed to read legacy JSON database", {
+        error: error.message,
+      });
       return null;
     }
   }
 
   removeLegacyJsonData() {
-    const legacyPath = path.resolve(config.DATA_PATH, 'database.json');
+    const legacyPath = path.resolve(config.DATA_PATH, "database.json");
     try {
       if (fs.existsSync(legacyPath)) fs.unlinkSync(legacyPath);
     } catch (error) {
-      logger.warn('Could not remove legacy JSON database after migration', { error: error.message });
+      logger.warn("Could not remove legacy JSON database after migration", {
+        error: error.message,
+      });
     }
   }
 
@@ -171,9 +184,11 @@ class Database {
   }
 
   save() {
-    if (this.storeType === 'mongodb') {
-      this.saveMongoDB().catch(error => {
-        logger.error('Failed to save MongoDB database', { error: error.message });
+    if (this.storeType === "mongodb") {
+      this.saveMongoDB().catch((error) => {
+        logger.error("Failed to save MongoDB database", {
+          error: error.message,
+        });
       });
       return;
     }
@@ -182,12 +197,15 @@ class Database {
 
     try {
       const serialized = JSON.stringify(this.serializeData());
-      this.sqlite.run('INSERT OR REPLACE INTO bot_state (key, value, updated_at) VALUES (?, ?, ?)', ['data', serialized, Date.now()]);
+      this.sqlite.run(
+        "INSERT OR REPLACE INTO bot_state (key, value, updated_at) VALUES (?, ?, ?)",
+        ["data", serialized, Date.now()],
+      );
       const exported = this.sqlite.export();
       fs.writeFileSync(this.dbPath, Buffer.from(exported));
-      logger.debug('SQLite database saved successfully');
+      logger.debug("SQLite database saved successfully");
     } catch (error) {
-      logger.error('Failed to save SQLite database', { error: error.message });
+      logger.error("Failed to save SQLite database", { error: error.message });
     }
   }
 
@@ -195,9 +213,9 @@ class Database {
     if (!this.mongoCollection) return;
 
     await this.mongoCollection.updateOne(
-      { _id: 'data' },
+      { _id: "data" },
       { $set: { data: this.serializeData(), updatedAt: new Date() } },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
@@ -215,7 +233,7 @@ class Database {
         firstSeen: Date.now(),
         lastSeen: Date.now(),
         messageCount: 0,
-        commandCount: 0
+        commandCount: 0,
       };
     }
     return this.data.users[userId];
@@ -234,7 +252,7 @@ class Database {
         balance: 1000,
         bank: 0,
         lastDaily: 0,
-        lastWork: 0
+        lastWork: 0,
       };
     }
     return this.data.economy[userId];
@@ -291,7 +309,7 @@ class Database {
 
     const oneMinuteAgo = now - 60000;
     this.data.lastMessages[userId] = this.data.lastMessages[userId].filter(
-      timestamp => timestamp > oneMinuteAgo
+      (timestamp) => timestamp > oneMinuteAgo,
     );
 
     return this.data.lastMessages[userId].length;
@@ -304,7 +322,7 @@ class Database {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
     this.data.lastMessages[userId] = this.data.lastMessages[userId].filter(
-      timestamp => timestamp > oneMinuteAgo
+      (timestamp) => timestamp > oneMinuteAgo,
     );
     return this.data.lastMessages[userId].length;
   }
@@ -313,7 +331,7 @@ class Database {
     if (!this.data.spamWarnings[userId]) {
       this.data.spamWarnings[userId] = {
         count: 0,
-        lastWarning: 0
+        lastWarning: 0,
       };
     }
     this.data.spamWarnings[userId].count++;
@@ -331,14 +349,14 @@ class Database {
       trigger,
       response,
       createdBy,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
     this.data.autoResponses.push(autoResponse);
     return autoResponse;
   }
 
   removeAutoResponse(id) {
-    const index = this.data.autoResponses.findIndex(ar => ar.id === id);
+    const index = this.data.autoResponses.findIndex((ar) => ar.id === id);
     if (index > -1) {
       this.data.autoResponses.splice(index, 1);
       return true;
@@ -351,8 +369,8 @@ class Database {
   }
 
   findAutoResponse(message) {
-    return this.data.autoResponses.find(ar =>
-      message.toLowerCase().includes(ar.trigger.toLowerCase())
+    return this.data.autoResponses.find((ar) =>
+      message.toLowerCase().includes(ar.trigger.toLowerCase()),
     );
   }
 
@@ -362,7 +380,7 @@ class Database {
       userId,
       message,
       triggerTime,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
     this.data.reminders.push(reminder);
     return reminder;
@@ -370,11 +388,11 @@ class Database {
 
   getDueReminders() {
     const now = Date.now();
-    return this.data.reminders.filter(r => r.triggerTime <= now);
+    return this.data.reminders.filter((r) => r.triggerTime <= now);
   }
 
   removeReminder(id) {
-    const index = this.data.reminders.findIndex(r => r.id === id);
+    const index = this.data.reminders.findIndex((r) => r.id === id);
     if (index > -1) {
       this.data.reminders.splice(index, 1);
       return true;
@@ -391,11 +409,11 @@ class Database {
   }
 
   clearOldData() {
-    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
-    Object.keys(this.data.lastMessages).forEach(userId => {
+    Object.keys(this.data.lastMessages).forEach((userId) => {
       const recentMessages = this.data.lastMessages[userId].filter(
-        timestamp => timestamp > thirtyDaysAgo
+        (timestamp) => timestamp > thirtyDaysAgo,
       );
       if (recentMessages.length === 0) {
         delete this.data.lastMessages[userId];
@@ -404,7 +422,7 @@ class Database {
       }
     });
 
-    logger.info('Cleared old data from database');
+    logger.info("Cleared old data from database");
   }
 
   getThreadData(threadId) {
@@ -413,7 +431,7 @@ class Database {
         id: threadId,
         prefix: null,
         settings: {},
-        createdAt: Date.now()
+        createdAt: Date.now(),
       };
     }
     return this.data.threads[threadId];
@@ -441,18 +459,21 @@ class Database {
 
     this.data.sentMessages[threadId].push({
       itemId: itemId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     if (this.data.sentMessages[threadId].length > 50) {
       this.data.sentMessages[threadId].shift();
     }
 
-    logger.debug('Stored sent message', { threadId, itemId });
+    logger.debug("Stored sent message", { threadId, itemId });
   }
 
   getLastSentMessage(threadId) {
-    if (!this.data.sentMessages[threadId] || this.data.sentMessages[threadId].length === 0) {
+    if (
+      !this.data.sentMessages[threadId] ||
+      this.data.sentMessages[threadId].length === 0
+    ) {
       return null;
     }
 
@@ -462,7 +483,7 @@ class Database {
     return {
       itemId: lastMessage.itemId,
       threadId: threadId,
-      timestamp: lastMessage.timestamp
+      timestamp: lastMessage.timestamp,
     };
   }
 
@@ -471,10 +492,12 @@ class Database {
       return false;
     }
 
-    const index = this.data.sentMessages[threadId].findIndex(msg => msg.itemId === itemId);
+    const index = this.data.sentMessages[threadId].findIndex(
+      (msg) => msg.itemId === itemId,
+    );
     if (index > -1) {
       this.data.sentMessages[threadId].splice(index, 1);
-      logger.debug('Removed sent message from storage', { threadId, itemId });
+      logger.debug("Removed sent message from storage", { threadId, itemId });
       return true;
     }
 
@@ -486,19 +509,19 @@ class Database {
   }
 
   clearOldSentMessages() {
-    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    Object.keys(this.data.sentMessages).forEach(threadId => {
-      this.data.sentMessages[threadId] = this.data.sentMessages[threadId].filter(
-        msg => msg.timestamp > sevenDaysAgo
-      );
+    Object.keys(this.data.sentMessages).forEach((threadId) => {
+      this.data.sentMessages[threadId] = this.data.sentMessages[
+        threadId
+      ].filter((msg) => msg.timestamp > sevenDaysAgo);
 
       if (this.data.sentMessages[threadId].length === 0) {
         delete this.data.sentMessages[threadId];
       }
     });
 
-    logger.debug('Cleared old sent messages');
+    logger.debug("Cleared old sent messages");
   }
 
   isMessageProcessed(messageId) {
@@ -511,18 +534,18 @@ class Database {
   }
 
   cleanupProcessedMessages() {
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
     const messageIds = Object.keys(this.data.processedMessages);
 
     if (messageIds.length > 1000) {
-      messageIds.forEach(msgId => {
+      messageIds.forEach((msgId) => {
         if (this.data.processedMessages[msgId] < fiveMinutesAgo) {
           delete this.data.processedMessages[msgId];
         }
       });
 
-      logger.debug('Cleaned up old processed messages', {
-        remaining: Object.keys(this.data.processedMessages).length
+      logger.debug("Cleaned up old processed messages", {
+        remaining: Object.keys(this.data.processedMessages).length,
       });
     }
   }

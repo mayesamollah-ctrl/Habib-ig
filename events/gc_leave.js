@@ -1,10 +1,10 @@
-const logger = require('../utils/logger');
-const config = require('../config');
+const logger = require("../utils/logger");
+const config = require("../config");
 
 module.exports = {
   config: {
-    name: 'gc_leave',
-    description: 'Send a farewell message when a member leaves the group chat'
+    name: "gc_leave",
+    description: "Send a farewell message when a member leaves the group chat",
   },
 
   async run(bot, data) {
@@ -36,7 +36,7 @@ module.exports = {
       const message = `👋 ${displayName} has left the group. We'll miss you!`;
       await api.sendMessage(message, threadID);
     } catch (error) {
-      logger.error('Error in gc_leave event', { error: error.message });
+      logger.error("Error in gc_leave event", { error: error.message });
     }
-  }
+  },
 };

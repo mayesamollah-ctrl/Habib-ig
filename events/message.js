@@ -1,15 +1,15 @@
-const config = require('../config');
-const logger = require('../utils/logger');
-const PermissionManager = require('../utils/permissions');
-const Banner = require('../utils/banner');
-const database = require('../utils/database');
-const moderation = require('../utils/moderation');
-const ConfigManager = require('../utils/configManager');
+const config = require("../config");
+const logger = require("../utils/logger");
+const PermissionManager = require("../utils/permissions");
+const Banner = require("../utils/banner");
+const database = require("../utils/database");
+const moderation = require("../utils/moderation");
+const ConfigManager = require("../utils/configManager");
 
 module.exports = {
   config: {
-    name: 'message',
-    description: 'Handle incoming messages'
+    name: "message",
+    description: "Handle incoming messages",
   },
 
   async run(bot, data) {
@@ -27,7 +27,7 @@ module.exports = {
       if (config.LOG_EVENTS.disableAll || !config.LOG_EVENTS.message) {
         // skip banner log
       } else {
-        Banner.messageReceived(event.senderID, event.body || '');
+        Banner.messageReceived(event.senderID, event.body || "");
       }
 
       // Track user activity
@@ -39,10 +39,12 @@ module.exports = {
       const modResult = await moderation.moderateMessage(
         event.senderID,
         event.threadId,
-        event.body
+        event.body,
       );
       if (!modResult.allowed) {
-        logger.info(`Message blocked from ${event.senderID}: ${modResult.reason}`);
+        logger.info(
+          `Message blocked from ${event.senderID}: ${modResult.reason}`,
+        );
         if (modResult.message) {
           await api.sendMessage(modResult.message, event.threadId);
         }
@@ -50,7 +52,7 @@ module.exports = {
       }
 
       // Skip non-text messages
-      if (!event.body || typeof event.body !== 'string') return;
+      if (!event.body || typeof event.body !== "string") return;
 
       // Auto-responses (before command parsing)
       const autoResponse = database.findAutoResponse(event.body);
@@ -65,17 +67,18 @@ module.exports = {
 
       // "prefix" info shortcut
       const bodyLower = event.body.toLowerCase().trim();
-      if (bodyLower === 'prefix') {
+      if (bodyLower === "prefix") {
         await api.sendMessage(
           `🌐 Global prefix: ${config.PREFIX}\n🛸 Thread prefix: ${prefix}`,
-          event.threadId
+          event.threadId,
         );
         return;
       }
 
       // Determine if message is a command
       const startsWithPrefix = event.body.startsWith(prefix);
-      const noPrefixAllowed  = config.NO_PREFIX && PermissionManager.canUseNoPrefix(event.senderID);
+      const noPrefixAllowed =
+        config.NO_PREFIX && PermissionManager.canUseNoPrefix(event.senderID);
 
       if (!startsWithPrefix && !noPrefixAllowed) return;
 
@@ -91,7 +94,7 @@ module.exports = {
         if (startsWithPrefix) {
           await api.sendMessage(
             `ℹ️ You typed only the prefix!\n\nCurrent prefix: ${prefix}\nType ${prefix}help to see all commands.`,
-            event.threadId
+            event.threadId,
           );
         }
         return;
@@ -104,7 +107,7 @@ module.exports = {
         // Only notify when the user explicitly typed the prefix — never for no-prefix messages
         if (startsWithPrefix && !config.HIDE_NOTI.commandNotFound) {
           const allNames = commandLoader.getAllCommandNames();
-          const closest  = this.findClosestCommand(commandName, allNames);
+          const closest = this.findClosestCommand(commandName, allNames);
           let msg = `❌ Unknown command: "${commandName}"\n\n`;
           if (closest && closest.distance <= 3) {
             msg += `💡 Did you mean: ${prefix}${closest.command}?\n\n`;
@@ -117,14 +120,16 @@ module.exports = {
 
       // Admin-only mode check
       if (config.ADMIN_ONLY_ENABLE) {
-        const ignored = config.ADMIN_ONLY_IGNORE_COMMANDS.map(n => n.toLowerCase());
+        const ignored = config.ADMIN_ONLY_IGNORE_COMMANDS.map((n) =>
+          n.toLowerCase(),
+        );
         if (!ignored.includes(commandName)) {
           const userRole = PermissionManager.getUserRole(event.senderID);
           if (userRole < 2) {
             if (!config.HIDE_NOTI.adminOnly) {
               await api.sendMessage(
-                '🔒 The bot is currently in admin-only mode.',
-                event.threadId
+                "🔒 The bot is currently in admin-only mode.",
+                event.threadId,
               );
             }
             return;
@@ -134,11 +139,15 @@ module.exports = {
 
       // Cooldown check
       const cooldownTime = (command.config.cooldown || 0) * 1000;
-      const remaining    = commandLoader.checkCooldown(event.senderID, command.config.name, cooldownTime);
+      const remaining = commandLoader.checkCooldown(
+        event.senderID,
+        command.config.name,
+        cooldownTime,
+      );
       if (remaining > 0) {
         await api.sendMessage(
           `⏰ Please wait ${remaining}s before using this command again.`,
-          event.threadId
+          event.threadId,
         );
         return;
       }
@@ -161,13 +170,17 @@ module.exports = {
       if (requiredRole === 1) {
         threadInfo = await bot.getThreadInfo(event.threadId).catch(() => null);
       }
-      const hasPermission = await PermissionManager.hasPermission(event.senderID, requiredRole, threadInfo);
+      const hasPermission = await PermissionManager.hasPermission(
+        event.senderID,
+        requiredRole,
+        threadInfo,
+      );
       if (!hasPermission) {
         if (!config.HIDE_NOTI.needRoleToUseCmd) {
           const roleName = PermissionManager.getRoleName(requiredRole);
           await api.sendMessage(
             `❌ Access Denied!\n\nThis command requires: ${roleName}\nYour role is not sufficient.`,
-            event.threadId
+            event.threadId,
           );
         }
         return;
@@ -178,22 +191,26 @@ module.exports = {
         Banner.commandExecuted(command.config.name, event.senderID, true);
         user.commandCount = (user.commandCount || 0) + 1;
         database.updateUser(event.senderID, user);
-        database.incrementStat('totalCommands');
+        database.incrementStat("totalCommands");
 
         // Wrap api so sendMessage automatically replies to the triggering message
         const replyApi = new Proxy(api, {
           get(target, prop) {
-            if (prop === 'sendMessage') {
+            if (prop === "sendMessage") {
               return async (text, threadID) => {
                 try {
-                  return await target.replyToMessage(threadID, text, event.messageID);
+                  return await target.replyToMessage(
+                    threadID,
+                    text,
+                    event.messageID,
+                  );
                 } catch (_) {
                   return await target.sendMessage(text, threadID);
                 }
               };
             }
             return target[prop];
-          }
+          },
         });
 
         await command.run({
@@ -206,21 +223,30 @@ module.exports = {
           database,
           config,
           PermissionManager,
-          ConfigManager
+          ConfigManager,
         });
 
         if (cooldownTime > 0) {
-          commandLoader.setCooldown(event.senderID, command.config.name, cooldownTime);
+          commandLoader.setCooldown(
+            event.senderID,
+            command.config.name,
+            cooldownTime,
+          );
         }
       } catch (error) {
-        logger.error(`Command error: ${command.config.name}`, { error: error.message });
+        logger.error(`Command error: ${command.config.name}`, {
+          error: error.message,
+        });
         Banner.commandExecuted(command.config.name, event.senderID, false);
-        await api.sendMessage(`❌ Error executing command: ${error.message}`, event.threadId);
+        await api.sendMessage(
+          `❌ Error executing command: ${error.message}`,
+          event.threadId,
+        );
       }
     } catch (error) {
-      logger.error('Error in message event handler', {
+      logger.error("Error in message event handler", {
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
   },
@@ -230,22 +256,28 @@ module.exports = {
     let minDist = Infinity;
     for (const cmd of commandList) {
       const d = this.levenshtein(input.toLowerCase(), cmd.toLowerCase());
-      if (d < minDist) { minDist = d; closest = cmd; }
+      if (d < minDist) {
+        minDist = d;
+        closest = cmd;
+      }
     }
     return closest ? { command: closest, distance: minDist } : null;
   },
 
   levenshtein(a, b) {
-    const m = [], la = a.length, lb = b.length;
+    const m = [],
+      la = a.length,
+      lb = b.length;
     for (let i = 0; i <= la; i++) m[i] = [i];
     for (let j = 0; j <= lb; j++) m[0][j] = j;
     for (let i = 1; i <= la; i++) {
       for (let j = 1; j <= lb; j++) {
-        m[i][j] = a[i-1] === b[j-1]
-          ? m[i-1][j-1]
-          : Math.min(m[i-1][j-1] + 1, m[i][j-1] + 1, m[i-1][j] + 1);
+        m[i][j] =
+          a[i - 1] === b[j - 1]
+            ? m[i - 1][j - 1]
+            : Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
       }
     }
     return m[la][lb];
-  }
+  },
 };

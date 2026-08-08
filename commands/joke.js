@@ -1,13 +1,13 @@
 module.exports = {
   config: {
-    name: 'joke',
-    aliases: ['j', 'funny', 'laugh'],
-    description: 'Get a random joke',
-    usage: 'joke',
+    name: "joke",
+    aliases: ["j", "funny", "laugh"],
+    description: "Get a random joke",
+    usage: "joke",
     cooldown: 5,
     role: 0,
-    author: 'NeoKEX',
-    category: 'fun'
+    author: "NeoKEX",
+    category: "fun",
   },
 
   async run({ api, event, logger }) {
@@ -37,7 +37,7 @@ module.exports = {
         "What did one wall say to the other wall? I'll meet you at the corner!",
         "Why did the tomato turn red? Because it saw the salad dressing!",
         "What do you call a boomerang that doesn't come back? A stick!",
-        "Why did the cookie go to the doctor? Because it felt crumbly!"
+        "Why did the cookie go to the doctor? Because it felt crumbly!",
       ];
 
       const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
@@ -46,8 +46,11 @@ module.exports = {
 
       return api.sendMessage(message, event.threadId);
     } catch (error) {
-      logger.error('Error in joke command', { error: error.message, stack: error.stack });
-      return api.sendMessage('Error fetching joke.', event.threadId);
+      logger.error("Error in joke command", {
+        error: error.message,
+        stack: error.stack,
+      });
+      return api.sendMessage("Error fetching joke.", event.threadId);
     }
-  }
+  },
 };

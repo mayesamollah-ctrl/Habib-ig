@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const logger = require('./logger');
-const config = require('../config');
+const fs = require("fs");
+const path = require("path");
+const logger = require("./logger");
+const config = require("../config");
 
 class EventLoader {
   constructor(bot) {
@@ -14,15 +14,17 @@ class EventLoader {
    */
   async loadEvents() {
     const eventsPath = path.resolve(config.EVENTS_PATH);
-    
+
     if (!fs.existsSync(eventsPath)) {
-      logger.warn('Events directory not found, creating it');
+      logger.warn("Events directory not found, creating it");
       fs.mkdirSync(eventsPath, { recursive: true });
       return;
     }
 
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-    
+    const eventFiles = fs
+      .readdirSync(eventsPath)
+      .filter((file) => file.endsWith(".js"));
+
     logger.info(`Loading ${eventFiles.length} events...`);
 
     for (const file of eventFiles) {
@@ -52,7 +54,7 @@ class EventLoader {
    */
   registerEvents() {
     this.events.forEach((event, eventName) => {
-      if (typeof event.run === 'function') {
+      if (typeof event.run === "function") {
         logger.debug(`Registering event handler: ${eventName}`);
       }
     });
@@ -65,7 +67,7 @@ class EventLoader {
    */
   async handleEvent(eventName, data) {
     const event = this.events.get(eventName);
-    
+
     if (!event) {
       logger.debug(`No handler for event: ${eventName}`);
       return;
@@ -76,7 +78,7 @@ class EventLoader {
     } catch (error) {
       logger.error(`Error handling event ${eventName}`, {
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
   }

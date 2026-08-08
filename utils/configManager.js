@@ -1,29 +1,37 @@
-const fs = require('fs');
-const path = require('path');
-const logger = require('./logger');
+const fs = require("fs");
+const path = require("path");
+const logger = require("./logger");
 
 class ConfigManager {
-  static configPath = path.resolve(__dirname, '../config/default.json');
+  static configPath = path.resolve(__dirname, "../config/default.json");
 
   static loadConfig() {
     try {
       if (fs.existsSync(this.configPath)) {
-        return JSON.parse(fs.readFileSync(this.configPath, 'utf-8'));
+        return JSON.parse(fs.readFileSync(this.configPath, "utf-8"));
       }
       return {};
     } catch (error) {
-      logger.error('Error loading config/default.json:', { error: error.message });
+      logger.error("Error loading config/default.json:", {
+        error: error.message,
+      });
       return {};
     }
   }
 
   static saveConfig(config) {
     try {
-      fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8');
-      logger.info('Configuration saved successfully');
+      fs.writeFileSync(
+        this.configPath,
+        JSON.stringify(config, null, 2),
+        "utf-8",
+      );
+      logger.info("Configuration saved successfully");
       return true;
     } catch (error) {
-      logger.error('Error saving config/default.json:', { error: error.message });
+      logger.error("Error saving config/default.json:", {
+        error: error.message,
+      });
       return false;
     }
   }
@@ -33,7 +41,7 @@ class ConfigManager {
     try {
       return this.loadConfig().adminBot || [];
     } catch (error) {
-      logger.error('Error getting admins:', { error: error.message });
+      logger.error("Error getting admins:", { error: error.message });
       return [];
     }
   }
@@ -50,7 +58,7 @@ class ConfigManager {
       config.adminBot.push(String(userId));
       return this.saveConfig(config);
     } catch (error) {
-      logger.error('Error adding admin:', { error: error.message });
+      logger.error("Error adding admin:", { error: error.message });
       return false;
     }
   }
@@ -61,11 +69,12 @@ class ConfigManager {
       if (!config.adminBot) return false;
       const idx = config.adminBot.indexOf(String(userId));
       if (idx === -1) return false;
-      if (config.devUsers && config.devUsers.includes(String(userId))) return false;
+      if (config.devUsers && config.devUsers.includes(String(userId)))
+        return false;
       config.adminBot.splice(idx, 1);
       return this.saveConfig(config);
     } catch (error) {
-      logger.error('Error removing admin:', { error: error.message });
+      logger.error("Error removing admin:", { error: error.message });
       return false;
     }
   }
@@ -120,7 +129,7 @@ class ConfigManager {
   // Legacy shim – some old code calls getDeveloper()
   static getDeveloper() {
     const devs = this.getDevUsers();
-    return devs[0] || '';
+    return devs[0] || "";
   }
 }
 

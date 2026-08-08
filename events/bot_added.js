@@ -1,10 +1,10 @@
-const logger = require('../utils/logger');
-const config = require('../config');
+const logger = require("../utils/logger");
+const config = require("../config");
 
 module.exports = {
   config: {
-    name: 'bot_added',
-    description: 'Introduction message when the bot is added to a new group'
+    name: "bot_added",
+    description: "Introduction message when the bot is added to a new group",
   },
 
   async run(bot, data) {
@@ -23,7 +23,7 @@ module.exports = {
 
       await api.sendMessage(intro, threadID);
     } catch (error) {
-      logger.error('Error in bot_added event', { error: error.message });
+      logger.error("Error in bot_added event", { error: error.message });
     }
-  }
+  },
 };

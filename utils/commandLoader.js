@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const logger = require('./logger');
-const config = require('../config');
+const fs = require("fs");
+const path = require("path");
+const logger = require("./logger");
+const config = require("../config");
 
 class CommandLoader {
   constructor() {
@@ -14,17 +14,18 @@ class CommandLoader {
    */
   async loadCommands() {
     const commandsPath = path.resolve(config.COMMANDS_PATH);
-    
+
     if (!fs.existsSync(commandsPath)) {
-      logger.warn('Commands directory not found, creating it');
+      logger.warn("Commands directory not found, creating it");
       fs.mkdirSync(commandsPath, { recursive: true });
       return;
     }
 
-    const commandFiles = fs.readdirSync(commandsPath)
-      .filter(file => file.endsWith('.js'))
-      .map(file => path.join(commandsPath, file));
-    
+    const commandFiles = fs
+      .readdirSync(commandsPath)
+      .filter((file) => file.endsWith(".js"))
+      .map((file) => path.join(commandsPath, file));
+
     logger.info(`Loading ${commandFiles.length} commands...`);
 
     for (const file of commandFiles) {
@@ -35,24 +36,29 @@ class CommandLoader {
         const commandModule = require(filePath);
 
         if (!commandModule.config || !commandModule.config.name) {
-          logger.warn(`Command ${path.relative(commandsPath, file)} is missing config.name, skipping`);
+          logger.warn(
+            `Command ${path.relative(commandsPath, file)} is missing config.name, skipping`,
+          );
           continue;
         }
 
         this.commands.set(commandModule.config.name, commandModule);
-        
+
         if (commandModule.config.aliases) {
-          commandModule.config.aliases.forEach(alias => {
+          commandModule.config.aliases.forEach((alias) => {
             this.commands.set(alias, commandModule);
           });
         }
 
         logger.info(`Loaded command: ${commandModule.config.name}`, {
           description: commandModule.config.description,
-          aliases: commandModule.config.aliases || []
+          aliases: commandModule.config.aliases || [],
         });
       } catch (error) {
-        logger.error(`Failed to load command ${path.relative(commandsPath, file)}`, { error: error.message });
+        logger.error(
+          `Failed to load command ${path.relative(commandsPath, file)}`,
+          { error: error.message },
+        );
       }
     }
 
@@ -77,7 +83,7 @@ class CommandLoader {
    */
   checkCooldown(userId, commandName, cooldownTime) {
     const key = `${userId}-${commandName}`;
-    
+
     if (!this.cooldowns.has(key)) {
       return 0;
     }
@@ -113,7 +119,7 @@ class CommandLoader {
    * Reload all commands
    */
   async reloadCommands() {
-    logger.info('Reloading all commands...');
+    logger.info("Reloading all commands...");
     this.commands.clear();
     await this.loadCommands();
   }

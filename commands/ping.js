@@ -1,13 +1,13 @@
 module.exports = {
   config: {
-    name: 'ping',
-    aliases: ['p'],
-    description: 'Check bot response time',
-    usage: 'ping',
+    name: "ping",
+    aliases: ["p"],
+    description: "Check bot response time",
+    usage: "ping",
     cooldown: 5,
     role: 0,
-    author: 'NeoKEX',
-    category: 'system'
+    author: "NeoKEX",
+    category: "system",
   },
 
   async run({ api, event, logger }) {
@@ -20,10 +20,10 @@ module.exports = {
 
       await api.sendMessage(
         `${Date.now() - start}ms | ${h}h ${m}m ${s}s uptime`,
-        event.threadId
+        event.threadId,
       );
     } catch (error) {
-      logger.error('Error in ping command', { error: error.message });
+      logger.error("Error in ping command", { error: error.message });
     }
-  }
+  },
 };
