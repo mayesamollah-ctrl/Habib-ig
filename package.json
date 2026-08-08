@@ -13,6 +13,7 @@
   "dependencies": {
     "@neoaz07/nkxica": "^1.0.3",
     "axios": "^1.13.1",
+    "canvas": "^2.9.1",
     "dotenv": "^17.2.3",
     "fs-extra": "^11.3.2",
     "mongodb": "^7.1.1",
