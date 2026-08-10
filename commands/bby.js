@@ -5,8 +5,8 @@ module.exports = {
   config: {
     name: "baby",
     aliases: ["hippi", "bot", "bby", "Baby", "Bot", "BBY"],
-    version: "2.0.1",
-    author: "rX |moded by Sk Habibulla",
+    version: "2.0.2",
+    author: "rX |Moded by Sk Habibulla 💝",
     countDown: 0,
     role: 0,
     shortDescription: "Cute AI Baby Chatbot (Auto Teach + Reply)",
@@ -18,12 +18,10 @@ module.exports = {
   },
 
   // ─────────────── MAIN COMMAND ───────────────
-  onStart: async function ({ api, event, args, message, usersData }) {
+  run: async function ({ api, event, args, message, usersData }) {
     const senderID = event.senderID;
     const senderName = await usersData.getName(senderID) || "Baby";
     const query = args.join(" ").trim().toLowerCase();
-    const threadID = event.threadID;
-    const messageID = event.messageID;
 
     try {
       if (!query) {
