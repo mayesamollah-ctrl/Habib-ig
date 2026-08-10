@@ -1,73 +1,147 @@
-const axios = require('axios');
-
-const BASE_URL = 'https://noobs-api.top/dipto/baby';
+const axios = require("axios");
+const simsim = "https://simsimi-api-tjb1.onrender.com";
 
 module.exports = {
   config: {
-    name: 'bby',
-    aliases: ['baby', 'bbe', 'babe'],
-    description: 'Chat with Baby AI — teach it, manage replies, and more',
-    usage: 'bby <message> | teach <msg> - <reply> | remove <msg> | list | msg <msg>',
-    cooldown: 3,
+    name: "baby",
+    aliases: ["hippi", "bot", "bby", "Baby", "Bot", "BBY"],
+    version: "2.0.1",
+    author: "rX |moded by Sk Habibulla",
+    countDown: 0,
     role: 0,
-    author: 'dipto',
-    category: 'ai'
+    shortDescription: "Cute AI Baby Chatbot (Auto Teach + Reply)",
+    longDescription: "Talk & Chat with Emotion — Auto teach enabled.",
+    category: "box chat",
+    guide: {
+      en: "{pn} [message]\n{pn} teach [Question] - [Answer]\n{pn} list"
+    }
   },
 
-  async run({ api, event, args, logger }) {
-    if (args.length === 0) {
-      const idle = ['Bolo baby 🥺', 'hum...', 'Type bby help', 'Ki bolbe?'];
-      return api.sendMessage(idle[Math.floor(Math.random() * idle.length)], event.threadId);
-    }
-
-    const uid  = event.senderID;
-    const text = args.join(' ').toLowerCase();
+  // ─────────────── MAIN COMMAND ───────────────
+  onStart: async function ({ api, event, args, message, usersData }) {
+    const senderID = event.senderID;
+    const senderName = await usersData.getName(senderID) || "Baby";
+    const query = args.join(" ").trim().toLowerCase();
+    const threadID = event.threadID;
+    const messageID = event.messageID;
 
     try {
-      // remove <msg>
-      if (args[0] === 'remove') {
-        const msg = text.replace('remove ', '');
-        const res = await axios.get(`${BASE_URL}?remove=${encodeURIComponent(msg)}&senderID=${uid}`);
-        return api.sendMessage(res.data.message, event.threadId);
+      if (!query) {
+        const ran = ["Bolo baby 💖", "Hea baby 😚"];
+        const r = ran[Math.floor(Math.random() * ran.length)];
+        return message.reply(r, (err, info) => {
+          if (!err && info?.messageID) {
+            global.ST.onReply.set(info.messageID, {
+              commandName: "baby",
+              author: senderID
+            });
+          }
+        });
       }
 
-      // list
-      if (args[0] === 'list') {
-        const res = await axios.get(`${BASE_URL}?list=all`);
-        const data = res.data;
-        return api.sendMessage(
-          `❇️ Total Teaches: ${data.length || 'N/A'}\n♻️ Total Responses: ${data.responseLength || 'N/A'}`,
-          event.threadId
-        );
-      }
-
-      // msg <msg>
-      if (args[0] === 'msg') {
-        const msg = text.replace('msg ', '');
-        const res = await axios.get(`${BASE_URL}?list=${encodeURIComponent(msg)}`);
-        return api.sendMessage(`Message "${msg}" → ${res.data.data}`, event.threadId);
-      }
-
-      // teach <msg> - <reply>
-      if (args[0] === 'teach') {
-        const parts = text.replace('teach ', '').split(/\s*-\s*/);
-        if (parts.length < 2 || parts[1].length < 2) {
-          return api.sendMessage('❌ Invalid format!\n\nUsage: bby teach <message> - <reply1>, <reply2>', event.threadId);
-        }
-        const [question, reply] = parts;
+      // ─── Teach command ───
+      if (args[0] === "teach") {
+        const parts = query.replace("teach ", "").split(" - ");
+        if (parts.length < 2)
+          return message.reply("Use: baby teach [Question] - [Reply]");
+        
+        const [ask, ans] = parts;
         const res = await axios.get(
-          `${BASE_URL}?teach=${encodeURIComponent(question)}&reply=${encodeURIComponent(reply)}&senderID=${uid}`
+          `\( {simsim}/teach?ask= \){encodeURIComponent(ask)}&ans=\( {encodeURIComponent(ans)}&senderName= \){encodeURIComponent(senderName)}`
         );
-        return api.sendMessage(`✅ Taught!\n${res.data.message}`, event.threadId);
+        return message.reply(res.data.message || "Learned successfully!");
       }
 
-      // regular chat
-      const res = await axios.get(`${BASE_URL}?text=${encodeURIComponent(text)}&senderID=${uid}&font=1`);
-      return api.sendMessage(res.data.reply || '...', event.threadId);
+      // ─── List command ───
+      if (args[0] === "list") {
+        const res = await axios.get(`${simsim}/list`);
+        if (res.data.code === 200)
+          return message.reply(
+            `♾ Total Questions: ${res.data.totalQuestions}\n★ Replies: ${res.data.totalReplies}\n👑 Author: ${res.data.author}`
+          );
+        else
+          return message.reply(`Error: ${res.data.message || "Failed to fetch list"}`);
+      }
 
-    } catch (error) {
-      logger.error('bby error', { error: error.message });
-      return api.sendMessage('❌ Baby AI is unavailable right now.', event.threadId);
+      // ─── Normal chat ───
+      const res = await axios.get(
+        `\( {simsim}/simsimi?text= \){encodeURIComponent(query)}&senderName=${encodeURIComponent(senderName)}`
+      );
+      
+      const responses = Array.isArray(res.data.response)
+        ? res.data.response
+        : [res.data.response];
+
+      if (!responses || responses.length === 0 || !responses[0]) {
+        console.log(`🤖 Auto-teaching new phrase: "${query}"`);
+        await axios.get(
+          `\( {simsim}/teach?ask= \){encodeURIComponent(query)}&ans=\( {encodeURIComponent("hmm baby 😚 (auto learned)")}&senderName= \){encodeURIComponent(senderName)}`
+        );
+        return message.reply("hmm baby 😚");
+      }
+
+      for (const reply of responses) {
+        await new Promise((resolve) => {
+          message.reply(reply, (err, info) => {
+            if (!err && info?.messageID) {
+              global.ST.onReply.set(info.messageID, {
+                commandName: "baby",
+                author: senderID
+              });
+            }
+            resolve();
+          });
+        });
+      }
+
+    } catch (err) {
+      console.error("❌ Baby main error:", err);
+      message.reply(`Error in baby command: ${err.message}`);
+    }
+  },
+
+  // ─────────────── HANDLE REPLY ───────────────
+  onReply: async function ({ api, event, Reply, message, usersData }) {
+    const senderName = await usersData.getName(event.senderID) || "Baby";
+    const replyText = event.body ? event.body.trim().toLowerCase() : "";
+
+    try {
+      if (!replyText) return;
+
+      const res = await axios.get(
+        `\( {simsim}/simsimi?text= \){encodeURIComponent(replyText)}&senderName=${encodeURIComponent(senderName)}`
+      );
+      
+      const responses = Array.isArray(res.data.response)
+        ? res.data.response
+        : [res.data.response];
+
+      // যদি SimSimi কিছু না পায়, auto-teach করে
+      if (!responses || responses.length === 0 || !responses[0]) {
+        console.log(`🧠 Auto-teaching new reply: "${replyText}"`);
+        await axios.get(
+          `\( {simsim}/teach?ask= \){encodeURIComponent(replyText)}&ans=\( {encodeURIComponent("hmm baby 😚 (auto learned)")}&senderName= \){encodeURIComponent(senderName)}`
+        );
+        return message.reply("hmm baby 😚");
+      }
+
+      for (const reply of responses) {
+        await new Promise((resolve) => {
+          message.reply(reply, (err, info) => {
+            if (!err && info?.messageID) {
+              global.ST.onReply.set(info.messageID, {
+                commandName: "baby",
+                author: event.senderID
+              });
+            }
+            resolve();
+          });
+        });
+      }
+
+    } catch (err) {
+      console.error("❌ Baby reply error:", err);
+      message.reply(`Error in baby reply: ${err.message}`);
     }
   }
 };
