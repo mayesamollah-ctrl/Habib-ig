@@ -1,60 +1,43 @@
 module.exports = {
   config: {
-    name: 'unsend',
-    aliases: ['delete', 'remove', 'del'],
-    description: 'Unsend a message (reply to the message you want to unsend)',
-    usage: 'unsend',
-    cooldown: 3,
+    name: "unsend",
+    aliases: ["r", "delete"],
+    version: "1.0",
+    author: "ST | Moded by Sk Habibulla 💝",
+    countDown: 2,
     role: 0,
-    author: 'NeoKEX',
-    category: 'admin'
+    shortDescription: "Unsend bot messages",
+    longDescription: "Reply to a bot message and use this command to unsend it",
+    category: "utility",
+    guide: {
+      en: "{pn} - Reply to a bot message to unsend it"
+    }
   },
 
-  async run({ api, event, bot, logger, config }) {
+  run: async function ({ message, event, api }) {
     try {
-      // Debug: Log event structure
-      if (config.LOG_LEVEL === 'debug') {
-        logger.debug('Unsend command event:', {
-          hasReplyToItemId: !!event.replyToItemId,
-          eventKeys: Object.keys(event)
-        });
+      if (!event.messageReply) {
+        return message.reply('Please reply to a bot message that you want to unsend.');
       }
 
-      let messageIdToUnsend;
-
-      // If this is a reply to a message, unsend that message
-      if (event.replyToItemId) {
-        messageIdToUnsend = event.replyToItemId;
-        logger.debug('Unsending replied message', { itemId: messageIdToUnsend });
-      } else {
-        // Otherwise, try to unsend the last message sent by the bot in this thread
-        const lastMessage = api.getLastSentMessage(event.threadId);
-        
-        if (!lastMessage) {
-          return api.sendMessage(
-            '❌ No message to unsend!\n\n' +
-            'Usage:\n' +
-            '• Reply to a bot message and type unsend to delete it\n' +
-            '• Type unsend to delete the bot\'s last message in this chat',
-            event.threadId
-          );
-        }
-        
-        messageIdToUnsend = lastMessage.itemId;
-        logger.debug('Unsending last bot message', { itemId: messageIdToUnsend });
+      const botUserId = global.ST.client?.state?.cookieUserId;
+      const repliedSenderID = event.messageReply.senderID;
+      
+      if (repliedSenderID !== botUserId && String(repliedSenderID) !== String(botUserId)) {
+        return message.reply('I can only unsend my own messages. Please reply to one of my messages.');
       }
 
-      // Try to unsend the message
-      try {
-        await api.unsendMessage(event.threadId, messageIdToUnsend);
-        logger.info(`Message unsent: ${messageIdToUnsend} in thread ${event.threadId}`);
-      } catch (unsendError) {
-        logger.error(`Failed to unsend message: ${unsendError.message}`);
-        return api.sendMessage('❌ Failed to unsend message.', event.threadId);
+      const messageIdToUnsend = event.messageReply.messageID;
+      
+      if (!messageIdToUnsend) {
+        return message.reply('Could not find the message ID to unsend.');
       }
-    } catch (error) {
-      logger.error(`Error in unsend command: ${error.message}`);
-      return api.sendMessage('❌ Error executing unsend command.', event.threadId);
+
+      await message.unsend(messageIdToUnsend);
+      
+    } catch (e) {
+      console.error('Unsend error:', e.message);
+      return message.reply(`Could not unsend message: ${e.message}`);
     }
   }
 };
