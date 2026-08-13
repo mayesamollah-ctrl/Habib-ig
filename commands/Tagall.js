@@ -3,7 +3,7 @@ module.exports = {
 		name: "tagall",
 		aliases: ["tagall", "gt"],
 		version: "1.0",
-		author: "♡┋Habibᥫ᭡",
+		author: "〲MAMUNツ࿐",
 		countDown: 5,
 		role: 0,
 		shortDescription: "Tag all members",
@@ -12,7 +12,7 @@ module.exports = {
 		guide: "{pn} <message>\n{pn} — tags everyone with a default message if no text given"
 	},
 
-	onStart: async function ({ message, args, api, event, threadsData }) {
+	run: async function ({ message, args, api, event, threadsData }) {
 		const threadID = event.threadID;
 
 		// Fetch thread info — adjust method name per your fca lib's docs
